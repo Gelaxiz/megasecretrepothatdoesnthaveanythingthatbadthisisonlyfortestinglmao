@@ -60,19 +60,19 @@ end
 -- SCRIPT STARTS HERE
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Crazy universal script by vivid", "GrapeTheme")
+local Window = Library.CreateLib("Crazy universal script", "GrapeTheme")
 
 local STab = Window:NewTab("Scripts")
 local GSection = STab:NewSection("Games")
+
 GSection:NewButton("Mm2", "Script for mm2", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Joystickplays/psychic-octo-invention/main/yarhm.lua", false))()
 end)
+
 GSection:NewButton("Rivals", "Script for Rivals", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/8bits4ya/rivals-v3/refs/heads/main/main.lua"))()
 end)
-GSection:NewButton("Da Hood", "Script for Da Hood", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/khen791/script-khen/refs/heads/main/frost%20remake%20by%20khen.lua", true))()
-end)
+
 GSection:NewButton("Flee The Facility", "Script for Flee The Facility", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/B-Xs/FPlus/refs/heads/main/Loader"))()
 end)
@@ -126,28 +126,305 @@ end)
 local UTab = Window:NewTab("Universal stuff")
 local PSection = UTab:NewSection("Player")
 
-PSection:NewSlider("Walkspeed fast", "Changes the walkspeed", 250, 16, function(v)
+PSection:NewSlider("Walkspeed", "Changes the walkspeed", 100, 1, function(v)
     game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
 end)
 
-PSection:NewSlider("Walkspeed slow", "Changes the walkspeed but slower than the one above", 16, 1, function(v)
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+PSection:NewButton("Reset Walkspeed", "Revert it back to the default 16", function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
 end)
-
 
 PSection:NewSlider("Jumppower", "Changes the jumppower", 250, 50, function(v)
     game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
+end)
+
+PSection:NewButton("Reset JumpP", "Revert it back to the default 50", function()
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
 end)
 
 PSection:NewSlider("Gravity", "Changes the gravity", 250, 0, function(v)
     game.Workspace.Gravity = v
 end)
 
+PSection:NewButton("Reset Gravity", "Revert it back to the default 196.2", function()
+    game.Workspace.Gravity = 196.2
+end)
+
+PSection:NewToggle("InfJump", "Toggle Infinitejump", function(state)
+    if state then
+        local UIS = game:GetService("UserInputService")
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+
+        local jumpConnection
+        local flying = false
+
+        jumpConnection = UIS.InputBegan:Connect(function(input)
+            if input.KeyCode == Enum.KeyCode.Space or input.UserInputType == Enum.UserInputType.Touch then
+                flying = true
+                while flying do
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                    wait(0.005)
+                end
+            end
+        end)
+
+        UIS.InputEnded:Connect(function(input)
+            if input.KeyCode == Enum.KeyCode.Space or input.UserInputType == Enum.UserInputType.Touch then
+                flying = false
+            end
+        end)
+
+        -- Store the connections so we can disconnect them when the toggle is off
+        _G.JumpConnection = jumpConnection
+        
+    else
+        if _G.JumpConnection then
+            _G.JumpConnection:Disconnect()
+            _G.JumpConnection = nil
+        end
+    end
+end)
+
+local BSection = UTab:NewSection("Aimbot")
+
+
+
+local fov = 150
+local smoothing = 1
+local teamCheck = false
+
+BSection:NewToggle("Teamcheck", "Bypasses aimbot from locking teammates", function(state)
+    if state then
+        teamCheck = true
+    else
+        teamCheck = false
+    end
+end)
+
+       
+
+local RunService = game:GetService("RunService")
+
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = true
+FOVring.Thickness = 1.5
+FOVring.Radius = fov
+FOVring.Transparency = 1
+FOVring.Color = Color3.fromRGB(255, 128, 128)
+FOVring.Position = workspace.CurrentCamera.ViewportSize/2
+
+local function getClosest(cframe)
+   local ray = Ray.new(cframe.Position, cframe.LookVector).Unit
+   
+   local target = nil
+   local mag = math.huge
+   
+   for i,v in pairs(game.Players:GetPlayers()) do
+       if v.Character and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") and v.Character:FindFirstChild("HumanoidRootPart") and v ~= game.Players.LocalPlayer and (v.Team ~= game.Players.LocalPlayer.Team or (not teamCheck)) then
+           local magBuf = (v.Character.Head.Position - ray:ClosestPoint(v.Character.Head.Position)).Magnitude
+           
+           if magBuf < mag then
+               mag = magBuf
+               target = v
+           end
+       end
+   end
+   
+   return target
+end
+
+local loop
+
+local function enableAimbot()
+   loop = RunService.RenderStepped:Connect(function()
+       local UserInputService = game:GetService("UserInputService")
+       local pressed = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+       local localPlay = game.Players.localPlayer.Character
+       local cam = workspace.CurrentCamera
+       local zz = workspace.CurrentCamera.ViewportSize/2
+   
+       if pressed then
+           local Line = Drawing.new("Line")
+           local curTar = getClosest(cam.CFrame)
+           local ssHeadPoint = cam:WorldToScreenPoint(curTar.Character.Head.Position)
+           ssHeadPoint = Vector2.new(ssHeadPoint.X, ssHeadPoint.Y)
+           if (ssHeadPoint - zz).Magnitude < fov then
+               workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(CFrame.new(cam.CFrame.Position, curTar.Character.Head.Position), smoothing)
+           end
+       end
+   
+       if UserInputService:IsKeyDown(Enum.KeyCode.Delete) then
+           disableAimbot()
+       end
+   end)
+end
+
+local function disableAimbot()
+   if loop then
+       loop:Disconnect()
+       loop = nil
+   end
+   FOVring:Remove()
+end
+
+BSection:NewToggle("Aimbot", "Press right click", function(state)
+    if state then
+        enableAimbot()
+    else
+        disableAimbot()
+    end
+end)
+
+
+
+
+
+
+
+
+
+local OSection = UTab:NewSection("Other")
+
+
+local espEnabled = false
+
+local function createESP(player)
+    if player == game.Players.LocalPlayer then return end
+    
+    -- Create the ESP highlight
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Green when visible
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- White outline
+    highlight.Parent = player.Character or player.CharacterAdded:Wait()
+
+    -- Create the name tag
+    local nameTag = Instance.new("BillboardGui", player.Character)
+    nameTag.Size = UDim2.new(0, 100, 0, 50) -- Size of the name tag
+    nameTag.StudsOffset = Vector3.new(0, 2, 0) -- Position above the character
+    nameTag.AlwaysOnTop = true
+
+    local nameLabel = Instance.new("TextLabel", nameTag)
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = player.Name
+    nameLabel.TextColor3 = Color3.new(1, 1, 1) -- White text
+    nameLabel.TextScaled = true
+
+    -- Function to check if the player is visible (not behind a wall)
+    local function checkWall()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local visible = false
+            for _, part in ipairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    -- Cast a ray from the local player's head to the target player's part
+                    local ray = Ray.new(game.Players.LocalPlayer.Character.Head.Position, (part.Position - game.Players.LocalPlayer.Character.Head.Position).unit * 300)
+                    local hitPart = workspace:FindPartOnRay(ray, game.Players.LocalPlayer.Character)
+                    if hitPart and hitPart:IsDescendantOf(player.Character) then
+                        visible = true
+                        break
+                    end
+                end
+            end
+            -- Update the highlight color based on visibility
+            highlight.FillColor = visible and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        end
+    end
+
+    -- Initialize visibility check
+    checkWall()
+
+    -- Update visibility when the player's character is added
+    player.CharacterAdded:Connect(function(character)
+        highlight.Parent = character
+        nameTag.Parent = character
+        checkWall()
+    end)
+
+    -- Continuously check visibility
+    game:GetService("RunService").RenderStepped:Connect(function()
+        checkWall()
+    end)
+end
+
+-- Add ESP to all players when they join
+game.Players.PlayerAdded:Connect(createESP)
+
+-- Toggle ESP on/off
+OSection:NewToggle("Toggle Esp", "Esp toggle", function(state)
+    espEnabled = state
+    if state then
+        -- Enable ESP for all players
+        for _, player in pairs(game.Players:GetPlayers()) do
+            createESP(player)
+        end
+    else
+        -- Disable ESP for all players
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character then
+                for _, child in pairs(player.Character:GetChildren()) do
+                    if child:IsA("Highlight") or child:IsA("BillboardGui") then
+                        child:Destroy()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+
+
+local noclipConnection
+
+PSection:NewToggle("Toggle noclip", "Hint: after turning off, jump", function(state)
+   local player = game.Players.LocalPlayer
+   local character = player.Character or player.CharacterAdded:Wait()
+   
+   if state then
+      -- Enable noclip
+      local function noclip()
+         for _, v in pairs(character:GetDescendants()) do
+            if v:IsA("BasePart") and v.CanCollide and v.Name ~= "Left Leg" and v.Name ~= "Right Leg" and v.Name ~= "Torso" then
+               v.CanCollide = false
+            end
+         end
+      end
+
+      -- Call noclip function and set up a loop to keep noclip active
+      noclip()
+      noclipConnection = game:GetService("RunService").Stepped:Connect(noclip)
+   else
+      -- Disable noclip
+      local function clip()
+         for _, v in pairs(character:GetDescendants()) do
+            if v:IsA("BasePart") and not v.CanCollide then
+               v.CanCollide = true
+            end
+         end
+      end
+
+      -- Call clip function to re-enable clipping
+      clip()
+
+      -- Disconnect noclip connection to stop the loop
+      if noclipConnection then
+         noclipConnection:Disconnect()
+         noclipConnection = nil
+      end
+   end
+end)
+
+
 Statstab = Window:NewTab("Info")
 local StatusSection = Statstab:NewSection("Informations")
 local maxplayers = getMaxPlayerCount()
-local version = StatusSection:NewLabel("Version 1.6")
-local credits = StatusSection:NewLabel("4vid and gela")
+local version = StatusSection:NewLabel("Version 1.7")
+local credits = StatusSection:NewLabel("4ivid and gela")
 local playerlabel = StatusSection:NewLabel("Players: " .. getCurrentPlayerCount() .. "/" .. maxplayers)
 local pinglabel = StatusSection:NewLabel("Ping: " .. getClientPing())
 local fpslabel = StatusSection:NewLabel("FPS: " .. getFPS())
@@ -174,3 +451,6 @@ task.spawn(function()
         wait(1)
     end
 end)
+
+
+
