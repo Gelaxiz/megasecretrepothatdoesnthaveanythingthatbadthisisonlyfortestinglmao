@@ -84,19 +84,23 @@ GSection:NewButton("IY", "Infinite Yield script for plenty of purposes", functio
     loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
 end)
 
-GSection:NewButton("Jerk off", "Jerk that thang only with R6. enable inventory with IY if your game has it disabled.", function()
+local USection = STab:NewSection("Universal")
+
+USection:NewButton("Jerk off", "Jerk that thang only with R6. enable inventory with IY if your game has it disabled.", function()
     loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))("Spider Script")
 end)
 
-GSection:NewButton("Fling gui toggle", "Script to press a button and go vroom", function()
+USection:NewButton("Fling gui toggle", "Script to press a button and go vroom", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Gelaxiz/megasecretrepothatdoesnthaveanythingthatbadthisisonlyfortestinglmao/refs/heads/main/TOGGLEFLING.lua"))()
 end)
 
-GSection:NewButton("Fake lag", "Fake lag Gui only two buttons but the creator made it a mess so i dont recommend using mobile", function()
+USection:NewButton("Fake lag", "Fake lag Gui only two buttons but the creator made it a mess so i dont recommend using mobile", function()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Fe%20Fake%20Lag%20Obfuscator'))()
 end)
 
-
+USection:NewButton("Rochip", "Universal kinda good gui", function()
+    loadstring(game:HttpGet('https://glot.io/snippets/gzrux646yj/raw/main.ts'))()
+end)
 
 local UTab = Window:NewTab("Universal stuff")
 local PSection = UTab:NewSection("Player")
