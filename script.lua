@@ -1,5 +1,3 @@
--- Funcs n shit
-
 function getCurrentPlayerCount()
     return #game.Players:GetPlayers()
 end
@@ -75,16 +73,26 @@ end)
 GSection:NewButton("Da Hood", "Script for Da Hood", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Joystickplays/psychic-octo-invention/main/yarhm.lua", false))()
 end)
-
+GSection:NewButton("Da Hood Secondary", " Second script for Da Hood", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/khen791/script-khen/refs/heads/main/frost%20remake%20by%20khen.lua", true))()
+end)
 GSection:NewButton("Flee The Facility", "Script for Flee The Facility", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/B-Xs/FPlus/refs/heads/main/Loader"))()
 end)
 
-GSection:NewButton("IY", "Infinite Yield script for plenty of purposes", function()
-    loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
+GSection:NewButton("Brookhaven", "Script for Brookhaven", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/AstroXTeam/AstroXTeam/refs/heads/main/AstroX%20%20releases"))()
+end)
+
+GSection:NewButton("K.A.T", "Script for KAT", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/whiteinian/Aquaware/main/Main.lua'))()
 end)
 
 local USection = STab:NewSection("Universal")
+
+USection:NewButton("IY", "Infinite Yield script for plenty of purposes", function()
+    loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
+end)
 
 USection:NewButton("Jerk off", "Jerk that thang only with R6. enable inventory with IY if your game has it disabled.", function()
     loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))("Spider Script")
@@ -100,6 +108,10 @@ end)
 
 USection:NewButton("Rochip", "Universal kinda good gui", function()
     loadstring(game:HttpGet('https://glot.io/snippets/gzrux646yj/raw/main.ts'))()
+end)
+
+USection:NewButton("FLY", "Universal fly button gui", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
 end)
 
 local UTab = Window:NewTab("Universal stuff")
@@ -125,6 +137,8 @@ end)
 Statstab = Window:NewTab("Info")
 local StatusSection = Statstab:NewSection("Informations")
 local maxplayers = getMaxPlayerCount()
+local version = StatusSection:NewLabel("Version 1.5")
+local credits = StatusSection:NewLabel("4vid and gela")
 local playerlabel = StatusSection:NewLabel("Players: " .. getCurrentPlayerCount() .. "/" .. maxplayers)
 local pinglabel = StatusSection:NewLabel("Ping: " .. getClientPing())
 local fpslabel = StatusSection:NewLabel("FPS: " .. getFPS())
