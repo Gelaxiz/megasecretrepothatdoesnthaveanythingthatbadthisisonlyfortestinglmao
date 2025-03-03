@@ -92,6 +92,10 @@ GSection:NewButton("Fling gui toggle", "Script to press a button and go vroom", 
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Gelaxiz/megasecretrepothatdoesnthaveanythingthatbadthisisonlyfortestinglmao/refs/heads/main/TOGGLEFLING.lua"))()
 end)
 
+GSection:NewButton("Fake lag", "Fake lag Gui only two buttons but the creator made it a mess so i dont recommend using mobile", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/GhostPlayer352/Test4/main/Fe%20Fake%20Lag%20Obfuscator'))()
+end)
+
 
 
 local UTab = Window:NewTab("Universal stuff")
