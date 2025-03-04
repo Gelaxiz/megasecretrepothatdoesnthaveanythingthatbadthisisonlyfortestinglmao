@@ -2,7 +2,7 @@ KEYLESS (for now) Roblox useful gui script
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Gelaxiz/megasecretrepothatdoesnthaveanythingthatbadthisisonlyfortestinglmao/refs/heads/main/script.lua"))()
 
-Current version: 1.7
+Current version: 1.0.7
 
 TODO:
 
