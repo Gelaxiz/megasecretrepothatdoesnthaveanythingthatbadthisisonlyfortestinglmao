@@ -291,91 +291,86 @@ end)
 
 local OSection = UTab:NewSection("Other")
 
-
 local espEnabled = false
+local espConnections = {}
 
-local function createESP(player)
-    if player == game.Players.LocalPlayer then return end
-    
-    -- Create the ESP highlight
-    local highlight = Instance.new("Highlight")
-    highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Green when visible
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- White outline
-    highlight.Parent = player.Character or player.CharacterAdded:Wait()
-
-    -- Create the name tag
-    local nameTag = Instance.new("BillboardGui", player.Character)
-    nameTag.Size = UDim2.new(0, 100, 0, 50) -- Size of the name tag
-    nameTag.StudsOffset = Vector3.new(0, 2, 0) -- Position above the character
-    nameTag.AlwaysOnTop = true
-
-    local nameLabel = Instance.new("TextLabel", nameTag)
-    nameLabel.Size = UDim2.new(1, 0, 1, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.Text = player.Name
-    nameLabel.TextColor3 = Color3.new(1, 1, 1) -- White text
-    nameLabel.TextScaled = true
-
-    -- Function to check if the player is visible (not behind a wall)
-    local function checkWall()
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local visible = false
-            for _, part in ipairs(player.Character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    -- Cast a ray from the local player's head to the target player's part
-                    local ray = Ray.new(game.Players.LocalPlayer.Character.Head.Position, (part.Position - game.Players.LocalPlayer.Character.Head.Position).unit * 300)
-                    local hitPart = workspace:FindPartOnRay(ray, game.Players.LocalPlayer.Character)
-                    if hitPart and hitPart:IsDescendantOf(player.Character) then
-                        visible = true
-                        break
-                    end
-                end
+local function removeESP(player)
+    if player.Character then
+        for _, v in ipairs(player.Character:GetChildren()) do
+            if v:IsA("Highlight") or v:IsA("BillboardGui") then
+                v:Destroy()
             end
-            -- Update the highlight color based on visibility
-            highlight.FillColor = visible and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
         end
     end
+end
 
-    -- Initialize visibility check
-    checkWall()
+local function createESP(player)
+    if not espEnabled then return end
+    if player == game.Players.LocalPlayer then return end
 
-    -- Update visibility when the player's character is added
-    player.CharacterAdded:Connect(function(character)
+    local function apply(character)
+        removeESP(player)
+
+        -- Highlight
+        local highlight = Instance.new("Highlight")
+        highlight.FillColor = Color3.fromRGB(0, 255, 0)
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
         highlight.Parent = character
-        nameTag.Parent = character
-        checkWall()
-    end)
 
-    -- Continuously check visibility
-    game:GetService("RunService").RenderStepped:Connect(function()
-        checkWall()
+        -- Name tag
+        local nameTag = Instance.new("BillboardGui")
+        nameTag.Name = "ESP_Name"
+        nameTag.Size = UDim2.new(0, 100, 0, 40)
+        nameTag.StudsOffset = Vector3.new(0, 2.5, 0)
+        nameTag.AlwaysOnTop = true
+        nameTag.Parent = character
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = player.Name
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.TextScaled = true
+        label.Parent = nameTag
+    end
+
+    if player.Character then
+        apply(player.Character)
+    end
+
+    espConnections[player] = player.CharacterAdded:Connect(function(char)
+        if espEnabled then
+            apply(char)
+        end
     end)
 end
 
--- Add ESP to all players when they join
-game.Players.PlayerAdded:Connect(createESP)
+-- Handle players who join AFTER you
+game.Players.PlayerAdded:Connect(function(player)
+    createESP(player)
+end)
 
--- Toggle ESP on/off
+-- ESP toggle
 OSection:NewToggle("Toggle Esp", "Esp toggle", function(state)
     espEnabled = state
+
     if state then
-        -- Enable ESP for all players
-        for _, player in pairs(game.Players:GetPlayers()) do
+        -- APPLY ESP TO ALL CURRENT PLAYERS
+        for _, player in ipairs(game.Players:GetPlayers()) do
             createESP(player)
         end
     else
-        -- Disable ESP for all players
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player.Character then
-                for _, child in pairs(player.Character:GetChildren()) do
-                    if child:IsA("Highlight") or child:IsA("BillboardGui") then
-                        child:Destroy()
-                    end
-                end
+        -- REMOVE ESP + CLEAN CONNECTIONS
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            removeESP(player)
+            if espConnections[player] then
+                espConnections[player]:Disconnect()
+                espConnections[player] = nil
             end
         end
     end
 end)
+
 
 
 
@@ -451,6 +446,3 @@ task.spawn(function()
         wait(1)
     end
 end)
-
-
-
