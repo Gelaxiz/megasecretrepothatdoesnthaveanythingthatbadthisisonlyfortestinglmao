@@ -291,18 +291,108 @@ end)
 
 local OSection = UTab:NewSection("Other")
 
-local espEnabled = false
-local espConnections = {}
+local floatEnabled = false
+local floatConnection
+local inputBeganConn
+local inputEndedConn
+local moveUp = false
+local moveDown = false
 
-local function removeESP(player)
-    if player.Character then
-        for _, v in ipairs(player.Character:GetChildren()) do
-            if v:IsA("Highlight") or v:IsA("BillboardGui") then
-                v:Destroy()
+local storedCollisionStates = {}
+
+OSection:NewToggle("Vertical Move (R/F)", "R = up, F = down (slow + noclip)", function(state)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:WaitForChild("HumanoidRootPart")
+
+    local UIS = game:GetService("UserInputService")
+    local RunService = game:GetService("RunService")
+
+    if state then
+        floatEnabled = true
+
+        -- 🔹 Disable collisions (noclip behavior)
+        storedCollisionStates = {}
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                storedCollisionStates[part] = part.CanCollide
+                part.CanCollide = false
             end
         end
+
+        -- 🔹 Vertical movement force
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = hrp
+
+        inputBeganConn = UIS.InputBegan:Connect(function(input, gpe)
+            if gpe then return end
+            if input.KeyCode == Enum.KeyCode.R then
+                moveUp = true
+            elseif input.KeyCode == Enum.KeyCode.F then
+                moveDown = true
+            end
+        end)
+
+        inputEndedConn = UIS.InputEnded:Connect(function(input)
+            if input.KeyCode == Enum.KeyCode.R then
+                moveUp = false
+            elseif input.KeyCode == Enum.KeyCode.F then
+                moveDown = false
+            end
+        end)
+
+        floatConnection = RunService.RenderStepped:Connect(function()
+            if not floatEnabled then return end
+
+            local yVel = 0
+            if moveUp then
+                yVel = 7.5      -- 50% slower up
+            elseif moveDown then
+                yVel = -7.5     -- 50% slower down
+            end
+
+            bodyVelocity.Velocity = Vector3.new(0, yVel, 0)
+        end)
+
+        _G.FloatBV = bodyVelocity
+
+    else
+        floatEnabled = false
+        moveUp = false
+        moveDown = false
+
+        if floatConnection then
+            floatConnection:Disconnect()
+            floatConnection = nil
+        end
+
+        if inputBeganConn then
+            inputBeganConn:Disconnect()
+            inputBeganConn = nil
+        end
+
+        if inputEndedConn then
+            inputEndedConn:Disconnect()
+            inputEndedConn = nil
+        end
+
+        -- 🔹 Restore collisions
+        for part, canCollide in pairs(storedCollisionStates) do
+            if part and part.Parent then
+                part.CanCollide = canCollide
+            end
+        end
+        storedCollisionStates = {}
+
+        if _G.FloatBV then
+            _G.FloatBV:Destroy()
+            _G.FloatBV = nil
+        end
     end
-end
+end)
+
 
 local function createESP(player)
     if not espEnabled then return end
